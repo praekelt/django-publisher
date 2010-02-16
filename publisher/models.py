@@ -9,20 +9,7 @@ from django.db import models
 # our own app imports
 from publisher.admin import ViewAdmin
 from publisher.utils import SSIContentResolver
-
-class View(models.Model):
-    page = models.CharField(
-        max_length=128, 
-        blank=True,
-        null=True,
-        help_text='Select the page you want this view to render on.'
-    )
-    url = models.CharField(
-        max_length=128,
-        blank=True,
-        null=True,
-        help_text='Enter a specific url you want this page to render on. This overrides the page field.'
-    )
+from content.abstract_models import Leaf
 
 class Publisher(models.Model):
     is_public = models.BooleanField(
@@ -39,7 +26,24 @@ class Publisher(models.Model):
     class Meta():
         abstract = True
 
-class Widget(SSIContentResolver, models.Model):
+class View(Leaf):
+    page = models.CharField(
+        max_length=128, 
+        blank=True,
+        null=True,
+        help_text='Select the page you want this view to render on.'
+    )
+    url = models.CharField(
+        max_length=128,
+        blank=True,
+        null=True,
+        help_text='Enter a specific url you want this page to render on. This overrides the page field.'
+    )
+    
+    def render(self, request, *args, **kwargs):
+        raise NotImplementedError("Leaf class should have implemented this")
+
+class Widget(SSIContentResolver, Leaf):
     title = models.CharField(max_length=128)
     
     def __unicode__(self):
