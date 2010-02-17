@@ -57,7 +57,7 @@ class Slot(models.Model):
         ordering = ('position',)
 
     def __unicode__(self):
-        return "%s slot for %s" % (self.widget, self.layout)
+        return "%s slot for %s" % (self.widget, self.view)
 
 # utility functions
 def is_through_widget_field(field):
@@ -90,7 +90,7 @@ def create_through_models(cls):
                 {
                     '__module__': cls.__module__,
                     'widget': models.ForeignKey(Widget, related_name='%s_slots' % name),
-                    'layout': models.ForeignKey(cls, related_name='%s_slots' % name),
+                    'view': models.ForeignKey(cls, related_name='%s_slots' % name),
                 }
             )
             inlines.append(type(
@@ -108,3 +108,16 @@ def create_through_models(cls):
             {'inlines': inlines},
         )
     admin.site.register(cls, cls_admin)
+
+from django.db.models.signals import post_save
+
+def connect_targets(sender, instance, **kwargs):
+    """
+    Listens to Publusher objects' save event and connects objects to their targets.
+    Each target must specify their own connect_content method that amkes the actual connection.
+    """
+    if isinstance(instance, Publisher):
+        for target in instance.targets.all():
+            target.as_leaf_class().connect_content(instance)
+
+post_save.connect(connect_targets)
