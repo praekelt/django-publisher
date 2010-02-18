@@ -42,6 +42,9 @@ class View(Leaf):
     
     def render(self, request, *args, **kwargs):
         raise NotImplementedError("Leaf class should have implemented this")
+    
+    def __unicode__(self):
+        return " ".join(self.page.split("_")).title()
 
 class Widget(SSIContentResolver, Leaf):
     title = models.CharField(max_length=128)
