@@ -17,7 +17,7 @@ class Publisher(models.Model):
         help_text='Check to make this item visible to the public.'
     )
 
-    targets =  models.ManyToManyField(
+    targets = models.ManyToManyField(
         'publisher.Widget', 
         blank=True, 
         help_text='Targets to which this content will be published.',
