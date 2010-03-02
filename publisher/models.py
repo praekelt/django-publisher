@@ -48,6 +48,7 @@ class View(Leaf):
 
 class Widget(SSIContentResolver, Leaf):
     title = models.CharField(max_length=128)
+    restricted_to = ()
     
     def __unicode__(self):
         return self.title
@@ -116,7 +117,7 @@ from django.db.models.signals import post_save
 
 def connect_targets(sender, instance, **kwargs):
     """
-    Listens to Publusher objects' save event and connects objects to their targets.
+    Listens to Publisher objects' save event and connects objects to their targets.
     Each target must specify their own connect_content method that makes the actual connection.
     """
     if isinstance(instance, Publisher):
