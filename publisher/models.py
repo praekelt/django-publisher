@@ -113,15 +113,33 @@ def create_through_models(cls):
         )
     admin.site.register(cls, cls_admin)
 
-from django.db.models.signals import post_save
+'''
+from django.db.models.signals import m2m_changed
 
-def connect_targets(sender, instance, **kwargs):
+def connect_targets(sender, instance, action, reverse, model, pk_set, **kwargs):
     """
     Listens to Publisher objects' save event and connects objects to their targets.
     Each target must specify their own connect_content method that makes the actual connection.
     """
-    if isinstance(instance, Publisher):
-        for target in instance.targets.all():
-            target.as_leaf_class().connect_content(instance)
+    if action == 'clear':
+        # 'remove' action doesn't seem to work on admin saves.
+        # Thus add clear targets to signal so we can determine which targets
+        # have been removed during the add action.
+        setattr(kwargs['signal'], 'clear_targets', [target for target in instance.targets.all()])
+    if action == 'add':
+        if isinstance(instance, Publisher):
+            add_targets = [target for target in instance.targets.all()]
+            clear_targets = kwargs['signal'].clear_targets
+            remove_targets = []
+            for target in clear_targets:
+                if target not in add_targets:
+                    remove_targets.append(target)
 
-post_save.connect(connect_targets)
+            for target in add_targets:
+                target.as_leaf_class().connect_content(instance)
+            
+            for target in remove_targets:
+                target.as_leaf_class().disconnect_content(instance)
+
+#m2m_changed.connect(connect_targets)
+'''
