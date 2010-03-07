@@ -31,25 +31,26 @@ class PublisherAdmin(admin.ModelAdmin):
     )
 
     def save_model(self, request, obj, form, change):
-        form_targets = form.cleaned_data['targets']
-        all_targets = [target for target in obj.targets.all()]
+        if not obj.ignore_targets:
+
+            form_targets = form.cleaned_data['targets']
+            all_targets = [target for target in obj.targets.all()]
             
-        add_targets = []
-        for target in form_targets:
-            if target not in all_targets:
-                add_targets.append(target)
+            add_targets = []
+            for target in form_targets:
+                if target not in all_targets:
+                    add_targets.append(target)
             
-        for target in add_targets:
-            target.as_leaf_class().connect_content(obj)
+            for target in add_targets:
+                target.as_leaf_class().connect_content(obj)
 
-        remove_targets = []
-        for target in all_targets:
-            if target not in form_targets:
-                remove_targets.append(target)
+            remove_targets = []
+            for target in all_targets:
+                if target not in form_targets:
+                    remove_targets.append(target)
 
-        for target in remove_targets:
-            target.as_leaf_class().disconnect_content(obj)
-
+            for target in remove_targets:
+                target.as_leaf_class().disconnect_content(obj)
 
         super(PublisherAdmin, self).save_model(request, obj, form, change)
 
