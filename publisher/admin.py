@@ -31,9 +31,11 @@ class PublisherAdmin(admin.ModelAdmin):
     )
 
     def save_model(self, request, obj, form, change):
+        form_targets = form.cleaned_data['targets']
+        super(PublisherAdmin, self).save_model(request, obj, form, change)
+        
         if not obj.ignore_targets:
 
-            form_targets = form.cleaned_data['targets']
             all_targets = [target for target in obj.targets.all()]
             
             add_targets = []
@@ -51,8 +53,6 @@ class PublisherAdmin(admin.ModelAdmin):
 
             for target in remove_targets:
                 target.as_leaf_class().disconnect_content(obj)
-
-        super(PublisherAdmin, self).save_model(request, obj, form, change)
 
 class PublisherInlineModelAdmin(InlineModelAdmin):
     form = PublisherAdminForm
