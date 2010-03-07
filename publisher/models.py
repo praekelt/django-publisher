@@ -22,6 +22,9 @@ class Publisher(models.Model):
         blank=True, 
         help_text='Targets to which this content will be published.',
     )
+
+    # us this member to disable target hookups during save
+    ignore_targets = False
     
     class Meta():
         abstract = True
@@ -143,3 +146,18 @@ def connect_targets(sender, instance, action, reverse, model, pk_set, **kwargs):
 
 #m2m_changed.connect(connect_targets)
 '''
+
+from django.db.models.signals import post_save
+
+
+def connect_targets(sender, instance, **kwargs):
+    """
+    Listens to Publisher objects' save event and connects objects to their targets.
+    Each target must specify their own connect_content method that amkes the actual connection.
+    """
+    if isinstance(instance, Publisher):
+        if not instance.ignore_targets:
+            for target in instance.targets.all():
+                target.as_leaf_class().connect_content(instance)
+
+post_save.connect(connect_targets)
