@@ -96,8 +96,8 @@ def create_through_models(cls):
                 (Slot,), 
                 {
                     '__module__': cls.__module__,
-                    'widget': models.ForeignKey(Widget, related_name='%s_slots' % name),
-                    'view': models.ForeignKey(cls, related_name='%s_slots' % name),
+                    'widget': models.ForeignKey(Widget, related_name='%s_slots' % cls._meta.object_name.lower()),
+                    'view': models.ForeignKey(cls, related_name='%s_slots' % cls._meta.object_name.lower()),
                 }
             )
             inlines.append(type(
