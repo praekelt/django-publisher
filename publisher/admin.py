@@ -64,7 +64,7 @@ class PublisherTabularInline(PublisherInlineModelAdmin, admin.TabularInline):
     pass
 
 class ViewAdminForm(forms.ModelForm):
-    page = forms.ChoiceField()
+    page = forms.ChoiceField(required=False)
     
     def __init__(self, *args, **kwargs):
         super(ViewAdminForm, self).__init__(*args, **kwargs)
@@ -75,7 +75,7 @@ class ViewAdminForm(forms.ModelForm):
         generate page choices from url patterns
         """
         root_urlconf = __import__(settings.ROOT_URLCONF, globals(), locals(), ['urlpatterns',])
-        page_choices = [(None, '---------'),]
+        page_choices = [('', '---------'),]
         for pattern in root_urlconf.urlpatterns:
             try:
                 page_choices.append((pattern.name, pattern.name.title().replace('_', ' ')))
