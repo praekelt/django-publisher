@@ -47,7 +47,10 @@ class View(Leaf):
         raise NotImplementedError("Leaf class should have implemented this")
     
     def __unicode__(self):
-        return " ".join(self.page.split("_")).title()
+        if self.page:
+            return "%s - %s" % (self.title," ".join(self.page.split("_")).title())
+        else:
+            return "%s - %s" % (self.title, self.url)
 
 class Widget(SSIContentResolver, Leaf):
     title = models.CharField(max_length=128)
