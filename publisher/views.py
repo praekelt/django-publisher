@@ -36,9 +36,12 @@ def resolve_pattern(request):
 
 def render_view(request, *args, **kwargs):
     pattern = resolve_pattern(request)
-    view = View.objects.filter(page=pattern.name)
+    view = View.objects.filter(url=request.path)
+    if not view:
+        view = View.objects.filter(page=pattern.name)
+    
     if view:
         view = view[0]
     else:
-        raise NotImplementedError("View not configured for page '%s'" % pattern.name)
+        raise NotImplementedError("View not configured for page '%s' with path %s" % (pattern.name, request.path))
     return view.as_leaf_class().render(request, *args, **kwargs)
