@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
     name='django-publisher',
     version='dev',
-    description='Django targeted publishing through view layouts and widgets app.',
+    description='Django external publishing app.',
     author='Praekelt Consulting',
     author_email='dev@praekelt.com',
     url='https://github.com/praekelt/django-publisher',
