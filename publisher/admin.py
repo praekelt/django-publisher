@@ -31,28 +31,47 @@ class PublisherAdmin(admin.ModelAdmin):
     )
 
     def save_model(self, request, obj, form, change):
-        form_targets = form.cleaned_data['targets']
+        """
+        We are dis/connecting targets here because there is no other sane place to do it.
+        Signlas and model saves just don't work consistently.
+        """
+        remove_targets = False
+        try:
+            form_targets = form.cleaned_data['targets']
+            remove_targets = True
+        except KeyError:
+            form_targets = []
+
         super(PublisherAdmin, self).save_model(request, obj, form, change)
         
         if not obj.ignore_targets:
 
+            # get exsiting targets from object
             all_targets = [target for target in obj.targets.all()]
             
+            # determine which targets to add. a target should be added if it's in the form's 
+            # targets but is not in the existing objects stored targets.
             add_targets = []
             for target in form_targets:
                 if target not in all_targets:
                     add_targets.append(target)
-            
+           
+            # connect add targets
             for target in add_targets:
                 target.as_leaf_class().connect_content(obj)
 
-            remove_targets = []
-            for target in all_targets:
-                if target not in form_targets:
-                    remove_targets.append(target)
+            # determine which targets to remove. a target should be removed if it's in the 
+            # existing objects stored targets but not in the form's targets.  don't remove anything
+            # if we were unable to collect form targets.
+            if remove_targets:
+                remove_targets = []
+                for target in all_targets:
+                    if target not in form_targets:
+                        remove_targets.append(target)
 
-            for target in remove_targets:
-                target.as_leaf_class().disconnect_content(obj)
+                # disconnect remove targets
+                for target in remove_targets:
+                    target.as_leaf_class().disconnect_content(obj)
 
 class PublisherInlineModelAdmin(InlineModelAdmin):
     form = PublisherAdminForm
