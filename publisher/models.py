@@ -8,7 +8,10 @@ class Publisher(models.Model):
 
 class Buzz(Publisher):
     # TODO: Add setup fields and methods to publish
-    pass
+    class Meta:
+        ordering = ('title',)
+        verbose_name = 'Buzz'
+        verbose_name_plural = 'Buzz'
 
 class Facebook(Publisher):
     # TODO: Add setup fields and methods to publish
@@ -19,7 +22,10 @@ class Facebook(Publisher):
 
 class Mobile(Publisher):
     # TODO: Add setup fields and methods to publish
-    pass
+    class Meta:
+        ordering = ('title',)
+        verbose_name = 'Mobile'
+        verbose_name_plural = 'Mobile'
 
 class Twitter(Publisher):
     # TODO: Add setup fields and methods to publish
@@ -34,6 +40,9 @@ class SocialBookmark(Publisher):
 
 class Web(Publisher):
     # TODO: Add setup fields and methods to publish
-    pass
+    class Meta:
+        ordering = ('title',)
+        verbose_name = 'Web'
+        verbose_name_plural = 'Web'
 
 #TODO: Add publishers for Mxit, Grid, Jil, Geo (Foursquare), Vlive, MTNPlay, V360, MyWeb.
