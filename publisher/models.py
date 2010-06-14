@@ -1,166 +1,146 @@
-# python imports
-import inspect, sys
-
-# django imports
-from django.conf import settings
-from django.contrib import admin
 from django.db import models
-
-# our own app imports
-from publisher.admin import ViewAdmin
-from publisher.utils import SSIContentResolver
-from content.abstract_models import Leaf
+from django.contrib.contenttypes.models import ContentType
 
 class Publisher(models.Model):
-    is_public = models.BooleanField(
-        default=False, verbose_name="Public",
-        help_text='Check to make this item visible to the public.'
+    title = models.CharField(
+        max_length=64
+    )
+    content_type = models.ForeignKey(
+        ContentType, 
+        editable=False, 
+        null=True
+    )
+    class_name = models.CharField(
+        max_length=32, 
+        editable=False, 
+        null=True
     )
 
-    targets = models.ManyToManyField(
-        'publisher.Widget', 
-        blank=True, 
-        help_text='Targets to which this content will be published.',
-    )
-
-    # us this member to disable target hookups during save
-    ignore_targets = False
-    
-    class Meta():
-        abstract = True
-
-class View(Leaf):
-    page = models.CharField(
-        max_length=128, 
-        blank=True,
-        null=True,
-        help_text='Select the page you want this view to render on.'
-    )
-    url = models.CharField(
-        max_length=128,
-        blank=True,
-        null=True,
-        help_text='Enter a specific url you want this page to render on. This overrides the page field.'
-    )
-    
-    def render(self, request, *args, **kwargs):
-        raise NotImplementedError("Leaf class should have implemented this")
-    
     def __unicode__(self):
-        if self.page:
-            return "%s - %s" % (self.title," ".join(self.page.split("_")).title())
-        else:
-            return "%s - %s" % (self.title, self.url)
-
-class Widget(SSIContentResolver, Leaf):
-    title = models.CharField(max_length=128)
-    restricted_to = ()
+        return "%s - %s" % (self._meta.verbose_name, self.title)
     
-    def __unicode__(self):
-        return self.title
+    def as_leaf_class(self):
+        """
+        Returns the leaf class no matter where the calling instance is in the inheritance hierarchy.
+        Inspired by http://www.djangosnippets.org/snippets/1031/
+        """
+        try:
+            return self.__getattribute__(self.class_name.lower())
+        except AttributeError:
+            content_type = self.content_type
+            model = content_type.model_class()
+            if(model == ModelBase):
+                return self
+            return model.objects.get(id=self.id)
+    
+    def publish(self, instance):
+        self.as_leaf_class().publish(instance)    
+    
+    def save(self, *args, **kwargs):
+        # set leaf class content type
+        if not self.content_type:
+            self.content_type = ContentType.objects.get_for_model(self.__class__)
+        
+        # set leaf class class name
+        if not self.class_name:
+            self.class_name = self.__class__.__name__
 
-class Slot(models.Model):
-    position = models.IntegerField()
+        super(Publisher, self).save(*args, **kwargs)
 
+class Buzz(Publisher):
+    # TODO: Add setup fields and methods to publish
     class Meta:
-        abstract = True
-        ordering = ('position',)
+        ordering = ('title',)
+        verbose_name = 'Buzz'
+        verbose_name_plural = 'Buzz'
 
-    def __unicode__(self):
-        return "%s slot for %s" % (self.widget, self.view)
+class Facebook(Publisher):
+    # TODO: Add setup fields and methods to publish
+    class Meta:
+        ordering = ('title',)
+        verbose_name = 'Facebook'
+        verbose_name_plural = 'Facebook'
 
-# utility functions
-def is_through_widget_field(field):
-    """
-    Determines if a field relates to the Widget model and if it has a through option set
-    """
-    from django.db.models.fields.related import ReverseManyRelatedObjectsDescriptor
-    try:
-        if field.__class__ == ReverseManyRelatedObjectsDescriptor:
-            if Widget in field.field.rel.to.__mro__:
-                return field.field.rel.through
-    except AttributeError:
-        return False
-    return False
+    def publish(self, instance):
 
-def create_through_models(cls):
-    """
-    Dynamically create 'through' classes and register for admin
-    """
-    if View in cls.__mro__ and cls != View:
-        widget_through_fields = inspect.getmembers(cls, is_through_widget_field)
-        inlines = []
-        for widget_through_field in widget_through_fields:
-            name = widget_through_field[0]
-            field = widget_through_field[1].field
-            through = field.rel.through
-            new_model = type(
-                through,
-                (Slot,), 
-                {
-                    '__module__': cls.__module__,
-                    'widget': models.ForeignKey(Widget, related_name='%s_slots' % cls._meta.object_name.lower()),
-                    'view': models.ForeignKey(cls, related_name='%s_slots' % cls._meta.object_name.lower()),
-                }
-            )
-            inlines.append(type(
-                "%sInline" % through,
-                (admin.TabularInline,),
-                {
-                    'model': new_model,
-                    'verbose_name': name.replace("_", " ").title(),
-                    'verbose_name_plural': '%s' % name.replace("_", " ").title(),
-                },
-            ))
-        cls_admin = type(
-            "%sAdmin" % cls.__name__,
-            (ViewAdmin,),
-            {'inlines': inlines},
-        )
-    admin.site.register(cls, cls_admin)
+        import facebook
+        fb = facebook.Facebook('c5e0e45e0b134230f43a137dbb1ff4f0', '63a2fbff39e0ba6e1e9620a4218974ca')
+        fb.auth.createToken()
+        fb.login()
+        import pdb; pdb.set_trace()
+        session = fb.auth.getSession()
 
-'''
-from django.db.models.signals import m2m_changed
+        import pdb; pdb.set_trace()
+        fb.session_key = session['session_key']
+        #fb.session_key = u'2.gKHR49pQHpuhIF5oUxaC8g__.3600.1275494400-100001158248236'        
+        
+        fb.uid = session['uid']
+        #fb.uid = 100001158248236L
+        
+        #id_of_message = fb.stream.publish(message='my test message')
+        fb(method='stream_publish', args={'session_key': fb.session_key, 'uid': '113183762059616', 'target_id': 'NULL', 'message':'MESSAGE_HERE1'})
 
-def connect_targets(sender, instance, action, reverse, model, pk_set, **kwargs):
-    """
-    Listens to Publisher objects' save event and connects objects to their targets.
-    Each target must specify their own connect_content method that makes the actual connection.
-    """
-    if action == 'clear':
-        # 'remove' action doesn't seem to work on admin saves.
-        # Thus add clear targets to signal so we can determine which targets
-        # have been removed during the add action.
-        setattr(kwargs['signal'], 'clear_targets', [target for target in instance.targets.all()])
-    if action == 'add':
-        if isinstance(instance, Publisher):
-            add_targets = [target for target in instance.targets.all()]
-            clear_targets = kwargs['signal'].clear_targets
-            remove_targets = []
-            for target in clear_targets:
-                if target not in add_targets:
-                    remove_targets.append(target)
 
-            for target in add_targets:
-                target.as_leaf_class().connect_content(instance)
+        
+
+        """
+        import facebook  
+        fb = facebook.Facebook('c5e0e45e0b134230f43a137dbb1ff4f0', '63a2fbff39e0ba6e1e9620a4218974ca') 
+        fb.secret = '63a2fbff39e0ba6e1e9620a4218974ca'
+        #fb.auth.createToken()  
+        #fb.login(popup=False)
+
+        session_key = '2.9IFBJreCj7woKkOfQMhHGA__.3600.1275490800-100001158248236'
+        fb.session_key = session_key
             
-            for target in remove_targets:
-                target.as_leaf_class().disconnect_content(instance)
+        #id_of_message = fb.stream.publish(message='my test message', uid='test')  
 
-#m2m_changed.connect(connect_targets)
-'''
+        fb(method='stream_publish', args={'session_key': session_key, 'uid': "1", 'target_id': 'NULL', 'message':'MESSAGE_HERE'})
 
-from django.db.models.signals import post_save
+         
+        session = fb.auth.getSession()
+        import pdb; pdb.set_trace()
 
+        try:  
+            id_of_message = fb.stream.publish(message='my test message', uid='test')  
+        except Exception, e:  
+            error_code = None  
+            try:  
+                error_code = e.code  
+            except AttributeError:  
+                pass  
 
-def connect_targets(sender, instance, **kwargs):
-    """
-    Listens to Publisher objects' save event and connects objects to their targets.
-    Each target must specify their own connect_content method that amkes the actual connection.
-    """
-    if isinstance(instance, Publisher):
-        if not instance.ignore_targets:
-            for target in instance.targets.all():
-                target.as_leaf_class().connect_content(instance)
+            if error_code:  
+                print  "Facebook returned an error - sorry! %s %s" % (str(e.code), repr(e))  
+            else:  
+                print  "Facebook returned an error - sorry (no error code)! %s" % (repr(e))  
 
-post_save.connect(connect_targets)
+        import pdb; pdb.set_trace()
+        """
+
+class Mobile(Publisher):
+    # TODO: Add setup fields and methods to publish
+    class Meta:
+        ordering = ('title',)
+        verbose_name = 'Mobile'
+        verbose_name_plural = 'Mobile'
+
+class Twitter(Publisher):
+    # TODO: Add setup fields and methods to publish
+    class Meta:
+        ordering = ('title',)
+        verbose_name = 'Twitter'
+        verbose_name_plural = 'Twitter'
+
+class SocialBookmark(Publisher):
+    # TODO: Add setup fields and methods to publish
+    pass
+
+class Web(Publisher):
+    # TODO: Add setup fields and methods to publish
+    class Meta:
+        ordering = ('title',)
+        verbose_name = 'Web'
+        verbose_name_plural = 'Web'
+
+#TODO: Add publishers for Mxit, Grid, Jil, Geo (Foursquare), Vlive, MTNPlay, V360, MyWeb.
