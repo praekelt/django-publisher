@@ -48,9 +48,9 @@ class View(Leaf):
     
     def __unicode__(self):
         if self.page:
-            return "%s - %s" % (self.title," ".join(self.page.split("_")).title())
+            return "%s - %s" % (self.page," ".join(self.page.split("_")).title())
         else:
-            return "%s - %s" % (self.title, self.url)
+            return "%s - %s" % (self.page, self.url)
 
 class Widget(SSIContentResolver, Leaf):
     title = models.CharField(max_length=128)
