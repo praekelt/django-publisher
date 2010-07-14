@@ -25,7 +25,7 @@ class PublisherAdmin(admin.ModelAdmin):
     list_filter = ('is_public',)
     fieldsets = (
         ('Publishing', {
-            'fields': ('is_public', 'targets',),
+            'fields': ('is_public', 'publish_on', 'retract_on', 'targets',),
             'classes': ('collapse',),
         }),
     )
