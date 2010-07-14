@@ -22,6 +22,16 @@ class Publisher(models.Model):
         blank=True, 
         help_text='Targets to which this content will be published.',
     )
+    publish_on = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text="Date and time on which to publish this item.",
+    )
+    retract_on = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text="Date and time on which to retract this item.",
+    )
 
     # us this member to disable target hookups during save
     ignore_targets = False
