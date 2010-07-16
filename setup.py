@@ -10,12 +10,12 @@ setup(
     license='BSD',
     url='http://github.com/praekelt/django-publisher',
     packages = find_packages(),
-    dependency_links = [
-        'http://github.com/sciyoshi/pyfacebook/tarball/master#egg=pyfacebook',
-    ],
-    install_requires = [
-        'pyfacebook',
-    ],
+    #dependency_links = [
+    #    'http://github.com/sciyoshi/pyfacebook/tarball/master#egg=pyfacebook',
+    #],
+    #install_requires = [
+    #    'pyfacebook',
+    #],
     include_package_data=True,
     classifiers = [
         "Programming Language :: Python",
