@@ -16,6 +16,11 @@ class Publisher(models.Model):
         default=False, verbose_name="Public",
         help_text='Check to make this item visible to the public.'
     )
+    
+    to_be_deleted = models.BooleanField(
+        default=False,
+        help_text="Is this particular entry marked to be deleted?",
+    )
 
     targets = models.ManyToManyField(
         'publisher.Widget', 
