@@ -8,7 +8,6 @@ setup(
     author='Praekelt Foundation',
     author_email='dev@praekelt.com',
     license='BSD',
-    url='http://github.com/praekelt/django-publisher',
     packages = find_packages(),
     #dependency_links = [
     #    'http://github.com/sciyoshi/pyfacebook/tarball/master#egg=pyfacebook',
