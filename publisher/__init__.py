@@ -1,5 +1,7 @@
 from django.db.models import signals
+
 from publisher.models import Publisher
+
 
 def publish(sender, instance, action, reverse, model, pk_set, **kwargs):
     if model == Publisher:
