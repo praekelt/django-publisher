@@ -8,9 +8,9 @@ test.run_tests = run_tests
 
 setup(
     name='django-publisher',
-    version='0.0.1',
+    version='0.0.2',
     description='Django external publishing app.',
-    long_description = open('README.rst', 'r').read(),
+    long_description = open('README.rst', 'r').read() + open('AUTHORS.rst', 'r').read() + open('CHANGELOG.rst', 'r').read(),
     author='Praekelt Foundation',
     author_email='dev@praekelt.com',
     license='BSD',
