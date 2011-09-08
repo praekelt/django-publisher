@@ -1,10 +1,4 @@
 from setuptools import setup, find_packages
-from setuptools.command.test import test
-
-def run_tests(self):
-    from setuptest.runtests import runtests
-    return runtests(self)
-test.run_tests = run_tests
 
 setup(
     name='django-publisher',
@@ -15,9 +9,9 @@ setup(
     author_email='dev@praekelt.com',
     license='BSD',
     packages = find_packages(),
-    test_suite="publisher.tests",
+    test_suite="setuptest.SetupTestSuite",
     tests_require=[
-        'django-setuptest',
+        'django-setuptest>=0.0.6',
     ],
     #dependency_links = [
     #    'http://github.com/sciyoshi/pyfacebook/tarball/master#egg=pyfacebook',
