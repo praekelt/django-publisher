@@ -2,13 +2,16 @@ from setuptools import setup, find_packages
 
 setup(
     name='django-publisher',
-    version='0.0.2',
+    version='0.0.3',
     description='Django external publishing app.',
     long_description = open('README.rst', 'r').read() + open('AUTHORS.rst', 'r').read() + open('CHANGELOG.rst', 'r').read(),
     author='Praekelt Foundation',
     author_email='dev@praekelt.com',
     license='BSD',
     packages = find_packages(),
+    install_requires = [
+        'Django',
+    ],
     test_suite="setuptest.SetupTestSuite",
     tests_require=[
         'django-setuptest>=0.0.6',
